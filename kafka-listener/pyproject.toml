@@ -1,0 +1,23 @@
+[project]
+name = "kafka-listener"
+version = "0.1.0"
+description = "Simple Kafka Listener for Prefect Automations"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiokafka>=0.12.0",
+    "anyio>=4.11.0",
+    "asgi-lifespan>=2.1.0",
+    "cloudpickle>=3.1.1",
+    "fastapi>=0.120.1",
+    "griffe>=1.14.0",
+    "httpx>=0.28.1",
+    "humanize>=4.14.0",
+    "orjson>=3.11.4",
+    "pendulum>=3.1.0",
+    "pydantic>=2.12.3",
+    "pydantic-extra-types>=2.10.6",
+    "pydantic-settings>=2.9.1",
+    "pyyaml>=6.0.3",
+    "uvicorn>=0.34.2",
+]
