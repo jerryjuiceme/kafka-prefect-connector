@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Literal
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -13,6 +14,13 @@ class BrokerConfig(BaseModel):
     group_id: str
 
 
+class PrefectConfig(BaseModel):
+    prefect_api_url: str
+    api_auth_string: str
+    basic_auth_username: str
+    basic_auth_password: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(BASE_DIR / ".env.template", BASE_DIR / ".env"),
@@ -26,7 +34,13 @@ class Settings(BaseSettings):
     version: str
     mode: Literal["DEV", "PROD", "TEST"] = "DEV"
     broker: BrokerConfig
-    prefect_api_url: str
+    prefect: PrefectConfig
+    run_retry_limit: int
 
 
-settings = Settings()  # type: ignore
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()  # type: ignore
+
+
+settings = get_settings()

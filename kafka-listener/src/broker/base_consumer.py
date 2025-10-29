@@ -8,8 +8,6 @@ from aiokafka.errors import KafkaConnectionError
 
 import httpx
 
-# from prefect.client.orchestration import get_client
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +21,7 @@ class MessageConsumer:
         group_id: str,
         bootstrap_servers: str,
         prefect_api_url: str,
-        loop: AbstractEventLoop,
+        loop: AbstractEventLoop,  # NOQA
     ):
         self.consumer = AIOKafkaConsumer(
             topic,
@@ -41,7 +39,9 @@ class MessageConsumer:
 
     async def consume_message(
         self: Self,
-    ):
+        auth_username: str,
+        auth_password: str,
+    ) -> None:
 
         try:
             await self.consumer.start()
@@ -55,6 +55,8 @@ class MessageConsumer:
                     message_value=decoded_message,
                     name=self.deployment_name,
                     deployment_id=self.deployment_id,
+                    username=auth_username,
+                    password=auth_password,
                 )
                 await asyncio.sleep(0)
 
@@ -78,8 +80,14 @@ class MessageConsumer:
         message_value: dict,
         name: str,
         deployment_id: uuid.UUID,
-    ):
-        async with httpx.AsyncClient(timeout=10) as client:
+        username: str,
+        password: str,
+    ) -> None:
+        if username or password:
+            auth = httpx.BasicAuth(username="finley", password="secret")
+        else:
+            auth = None
+        async with httpx.AsyncClient(timeout=10, auth=auth) as client:
             url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
             payload = {"parameters": {"event_data": message_value}}
 
@@ -102,13 +110,18 @@ class MessageConsumer:
                     exc.response.text,
                 )
 
-    # SDK
+    ################################################
+    ############ Prefect SDK Method ################
+    ################################################
+
     # async def trigger_flow(
     #     self,
     #     message_value: dict,
     #     name: str,
     #     deployment_id: uuid.UUID,
     # ):
+    #   from prefect.client.orchestration import get_client
+    #
     #     async with get_client() as client:
     #         await client.create_flow_run_from_deployment(
     #             name=name,

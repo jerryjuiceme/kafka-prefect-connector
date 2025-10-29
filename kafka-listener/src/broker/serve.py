@@ -30,18 +30,24 @@ async def start_consumer(br_conf: BrokerConfig) -> None:
         deployment_id=br_conf.deployment_id,
         group_id=br_conf.group_id,
         bootstrap_servers=br_conf.bootstrap_servers,
-        prefect_api_url=settings.prefect_api_url,
+        prefect_api_url=settings.prefect.prefect_api_url,
         loop=event_loop,
     )
     attempts = 0
-    for i in range(5):
-        await consumer.consume_message()
+    for i in range(settings.run_retry_limit):
+        await consumer.consume_message(
+            settings.prefect.basic_auth_username,
+            settings.prefect.basic_auth_password,
+        )
+
         if consumer.broker_started:
             logger.info("Starting consumer for topic: %s", br_conf.topic)
             break
+
         if not consumer.broker_started:
             logger.warning(
-                "Consumer not started after %s attempts. Retrying", (attempts + 1)
+                "Consumer not started after %s attempts. Retrying",
+                (attempts + 1),
             )
             await consumer.consumer.stop()
             attempts += 1

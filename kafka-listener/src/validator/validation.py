@@ -32,11 +32,6 @@ class ValidationConfig:
             logger.info("Validation config JSON completed successfully")
             logger.debug([i.model_dump() for i in self.flow_config])
 
-    def _load_json(self) -> dict:
-        with open(settings.base_dir / "prefect_data/event_config.json") as f:
-
-            return json.load(f)
-
     def stop(self):
         self.flow_config = None
         logger.info("Validation config JSON stopped successfully")
@@ -47,6 +42,11 @@ class ValidationConfig:
             return self.flow_config
         else:
             return None
+
+    def _load_json(self) -> dict:
+        with open(settings.base_dir / "prefect_data/event_config.json") as f:
+
+            return json.load(f)
 
 
 conf_validator = ValidationConfig()
