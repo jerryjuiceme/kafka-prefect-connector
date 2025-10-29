@@ -39,8 +39,8 @@ class MessageConsumer:
 
     async def consume_message(
         self: Self,
-        auth_username: str,
-        auth_password: str,
+        auth_username: str | None,
+        auth_password: str | None,
     ) -> None:
 
         try:
@@ -80,13 +80,14 @@ class MessageConsumer:
         message_value: dict,
         name: str,
         deployment_id: uuid.UUID,
-        username: str,
-        password: str,
+        username: str | None,
+        password: str | None,
     ) -> None:
-        if username or password:
-            auth = httpx.BasicAuth(username="finley", password="secret")
-        else:
+        if username is None or password is None:
             auth = None
+        else:
+            auth = httpx.BasicAuth(username=username, password=password)
+
         async with httpx.AsyncClient(timeout=10, auth=auth) as client:
             url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
             payload = {"parameters": {"event_data": message_value}}
