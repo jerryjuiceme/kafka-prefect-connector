@@ -10,13 +10,12 @@ BASE_DIR = Path(__file__).parent.parent
 
 class BrokerConfig(BaseModel):
     kafka_bootstrap_servers: str
-    prefect_api_url: str
     group_id: str
 
 
 class PrefectConfig(BaseModel):
-    prefect_api_url: str
-    api_auth_string: str
+    api_url: str
+    # basic auth for varible Example: PREFECT_API_AUTH_STRING="admin:pass"
     basic_auth_username: str
     basic_auth_password: str
 

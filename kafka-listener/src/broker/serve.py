@@ -3,7 +3,6 @@ from typing import List
 import logging
 from dataclasses import dataclass
 import uuid
-from aiokafka.errors import KafkaConnectionError
 from .base_consumer import MessageConsumer
 
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ async def start_consumer(br_conf: BrokerConfig) -> None:
         deployment_id=br_conf.deployment_id,
         group_id=br_conf.group_id,
         bootstrap_servers=br_conf.bootstrap_servers,
-        prefect_api_url=settings.prefect.prefect_api_url,
+        prefect_api_url=settings.prefect.api_url,
         loop=event_loop,
     )
     attempts = 0
@@ -53,7 +52,7 @@ async def start_consumer(br_conf: BrokerConfig) -> None:
             attempts += 1
             await asyncio.sleep(2 + attempts)
         if attempts >= 5:
-            logger.error("Consumer not started after 5 attempts")
+            logger.error("Consumer not started. Exiting")
             raise SystemExit(1)
 
 

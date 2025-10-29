@@ -96,16 +96,16 @@ class MessageConsumer:
                 response.raise_for_status()
                 result = response.json()
                 logger.info(
-                    "✅ Flow run triggered for deployment '%s' (id=%s): %s",
+                    "Flow run triggered for deployment '%s' (id=%s): %s",
                     name,
                     deployment_id,
                     result.get("id"),
                 )
             except httpx.RequestError as exc:
-                logger.error("🚨 Prefect API request failed: %s", exc)
+                logger.error(" Prefect API request failed: %s", exc)
             except httpx.HTTPStatusError as exc:
                 logger.error(
-                    "🚨 Prefect API returned error %s: %s",
+                    "Prefect API returned error %s: %s",
                     exc.response.status_code,
                     exc.response.text,
                 )
