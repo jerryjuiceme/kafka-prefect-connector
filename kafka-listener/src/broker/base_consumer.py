@@ -91,6 +91,12 @@ class MessageConsumer:
         async with httpx.AsyncClient(timeout=10, auth=auth) as client:
             url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
             payload = {"parameters": {"event_data": message_value}}
+            logger.info(
+                "Message received %s. Triggering api for deployment '%s' (id=%s)",
+                message_value,
+                name,
+                deployment_id,
+            )
 
             try:
                 response = await client.post(url, json=payload)
