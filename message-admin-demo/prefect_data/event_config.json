@@ -1,0 +1,17 @@
+[
+  {
+    "deploymentName": "process-kafka-deployment-1",
+    "deploymentId": "a274b5a3-4de7-4031-ad5c-d51620ac3013",
+    "topic": "event-topic-1"
+  },
+  {
+    "deploymentName": "process-kafka-deployment-2",
+    "deploymentId": "a274b5a3-4de7-4031-ad5c-d51620ac3013",
+    "topic": "event-topic-2"
+  },
+  {
+    "deploymentName": "process-kafka-deployment-3",
+    "deploymentId": "a274b5a3-4de7-4031-ad5c-d51620ac3013",
+    "topic": "event-topic-3"
+  }
+]
