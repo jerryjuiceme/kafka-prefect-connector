@@ -1,13 +1,14 @@
 import asyncio
 from asyncio import AbstractEventLoop
+from functools import cache
 import logging
 from typing import Self
 import uuid
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
-
 import httpx
 
+from src.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +17,8 @@ class MessageConsumer:
     def __init__(
         self,
         topic: str,
-        deployment_name: str,
-        deployment_id: uuid.UUID,
+        deployment_id: uuid.UUID | str,
+        flow_name: str,
         group_id: str,
         bootstrap_servers: str,
         prefect_api_url: str,
@@ -32,15 +33,15 @@ class MessageConsumer:
             max_poll_interval_ms=5000,  # increase polling interval
         )
         self.topic: str = topic
-        self.deployment_name: str = deployment_name
-        self.deployment_id: uuid.UUID = deployment_id
+        self.deployment_id: uuid.UUID | str = deployment_id
+        self.flow_name: str = flow_name
         self.prefect_api_url: str = prefect_api_url
         self.broker_started = False
 
     async def consume_message(
         self: Self,
-        auth_username: str | None,
-        auth_password: str | None,
+        auth_username: str,
+        auth_password: str,
     ) -> None:
 
         try:
@@ -53,7 +54,6 @@ class MessageConsumer:
                     decoded_message = message.value.decode("utf-8")
                 await self.trigger_flow(
                     message_value=decoded_message,
-                    name=self.deployment_name,
                     deployment_id=self.deployment_id,
                     username=auth_username,
                     password=auth_password,
@@ -78,44 +78,66 @@ class MessageConsumer:
     async def trigger_flow(
         self,
         message_value: dict,
-        name: str,
-        deployment_id: uuid.UUID,
-        username: str | None,
-        password: str | None,
+        deployment_id: uuid.UUID | str,
+        username: str,
+        password: str,
     ) -> None:
-        if username is None or password is None:
-            auth = None
-        else:
-            auth = httpx.BasicAuth(username=username, password=password)
+
+        auth = httpx.BasicAuth(username=username, password=password)
 
         async with httpx.AsyncClient(timeout=10, auth=auth) as client:
-            url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
-            payload = {"parameters": {"event_data": message_value}}
-            logger.info(
-                "Message received %s. Triggering api for deployment '%s' (id=%s)",
-                message_value,
-                name,
-                deployment_id,
-            )
-
             try:
+                deployment_id = await self._get_deployment_id(
+                    dp_name=deployment_id,
+                    client=client,
+                )
+                url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
+                payload = {"parameters": {"event_data": message_value}}
+                logger.info(
+                    "Message received %s. Triggering api for deployment '%s'",
+                    message_value,
+                    deployment_id,
+                )
+
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 result = response.json()
                 logger.info(
-                    "Flow run triggered for deployment '%s' (id=%s): %s",
-                    name,
+                    "Flow run triggered for deployment '%s': %s",
                     deployment_id,
                     result.get("id"),
                 )
-            except httpx.RequestError as exc:
-                logger.error(" Prefect API request failed: %s", exc)
-            except httpx.HTTPStatusError as exc:
+            except httpx.RequestError as e:
+                logger.error(" Prefect API request failed: %s", e)
+            except httpx.HTTPStatusError as e:
                 logger.error(
                     "Prefect API returned error %s: %s",
-                    exc.response.status_code,
-                    exc.response.text,
+                    e.response.status_code,
+                    e.response.text,
                 )
+
+    async def _get_deployment_id(
+        self,
+        dp_name: str | uuid.UUID,
+        client: httpx.AsyncClient,
+    ) -> uuid.UUID:
+        if isinstance(dp_name, uuid.UUID):
+            return dp_name
+
+        logger.info("Fetching deployment id for deployment name: %s", dp_name)
+        url = f"{self.prefect_api_url}/deployments/name/{self.flow_name}/{dp_name}"
+        try:
+            lookup_resp = await client.get(url)
+            lookup_resp.raise_for_status()
+
+            deployment = lookup_resp.json()
+            if isinstance(deployment, list):
+                deployment = deployment[0]
+
+            self.deployment_id = uuid.UUID(deployment["id"])
+            return self.deployment_id
+        except (httpx.RequestError, httpx.HTTPStatusError):
+            raise
 
     ################################################
     ############ Prefect SDK Method ################
@@ -124,7 +146,6 @@ class MessageConsumer:
     # async def trigger_flow(
     #     self,
     #     message_value: dict,
-    #     name: str,
     #     deployment_id: uuid.UUID,
     # ):
     #   from prefect.client.orchestration import get_client

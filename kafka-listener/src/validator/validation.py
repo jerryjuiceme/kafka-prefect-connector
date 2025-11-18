@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 import json
 import logging
+from pathlib import Path
+import sys
 
 from src.validator.config_schema import TopicToFlowConfig
 from src.config import settings
-
+from os.path import exists
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +46,17 @@ class ValidationConfig:
             return None
 
     def _load_json(self) -> dict:
-        with open(settings.base_dir / "prefect_data/event_config.json") as f:
+        files = [
+            settings.base_dir.parent / "prefect_data/event_config.json",
+            settings.base_dir / "prefect_data/event_config.json",
+        ]
+        for file in files:
+            if file.exists():
+                with open(file) as f:
+                    return json.load(f)
 
-            return json.load(f)
+        logger.error("Failed to load validation config JSON file")
+        raise FileNotFoundError("Failed to load validation config JSON file")
 
 
 conf_validator = ValidationConfig()

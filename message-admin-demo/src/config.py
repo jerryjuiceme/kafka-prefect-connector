@@ -10,14 +10,12 @@ BASE_DIR = Path(__file__).parent.parent
 
 
 class BrokerConfig(BaseModel):
-    """Конфигурация брокера Kafka."""
 
     kafka_bootstrap_servers: str
     group_id: str
 
 
 class Settings(BaseSettings):
-    """Основной класс настроек приложения."""
 
     model_config = SettingsConfigDict(
         env_file=(BASE_DIR / ".env"),

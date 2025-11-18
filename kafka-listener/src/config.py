@@ -18,6 +18,7 @@ class PrefectConfig(BaseModel):
     # basic auth for varible Example: PREFECT_API_AUTH_STRING="admin:pass"
     basic_auth_username: str
     basic_auth_password: str
+    use_deployment_id: bool = False
 
 
 class Settings(BaseSettings):

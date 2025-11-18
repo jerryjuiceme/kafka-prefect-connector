@@ -15,6 +15,7 @@ class TopicToFlowConfig(BaseModel):
     """Pydantic модель для одного объекта из JSON-конфигурации."""
 
     deployment_name: str = Field(validation_alias="deploymentName")
+    flow_name: str = Field(validation_alias="flowName")
     topic: str
     deployment_id: UUID = Field(validation_alias="deploymentId")
 

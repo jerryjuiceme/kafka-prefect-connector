@@ -16,8 +16,8 @@ event_loop = asyncio.get_event_loop()
 @dataclass
 class BrokerConfig:
     topic: str
-    deployment_name: str
-    deployment_id: uuid.UUID
+    deployment_id: uuid.UUID | str
+    flow_name: str
     group_id: str
     bootstrap_servers: str
 
@@ -25,11 +25,11 @@ class BrokerConfig:
 async def start_consumer(br_conf: BrokerConfig) -> None:
     consumer = MessageConsumer(
         topic=br_conf.topic,
-        deployment_name=br_conf.deployment_name,
         deployment_id=br_conf.deployment_id,
         group_id=br_conf.group_id,
         bootstrap_servers=br_conf.bootstrap_servers,
         prefect_api_url=settings.prefect.api_url,
+        flow_name=br_conf.flow_name,
         loop=event_loop,
     )
     attempts = 0
@@ -64,10 +64,15 @@ async def start_consumers() -> None:
         raise RuntimeError("No configs found")
 
     for conf in conf_validator.configs:
+        deployment_id = (
+            conf.deployment_id
+            if settings.prefect.use_deployment_id
+            else conf.deployment_name
+        )
         broker_config = BrokerConfig(
             topic=conf.topic,
-            deployment_name=conf.deployment_name,
-            deployment_id=conf.deployment_id,
+            deployment_id=deployment_id,
+            flow_name=conf.flow_name,
             group_id=settings.broker.group_id,
             bootstrap_servers=settings.broker.kafka_bootstrap_servers,
         )
