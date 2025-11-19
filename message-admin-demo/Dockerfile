@@ -1,7 +1,3 @@
-# Dockerfile
-
-# ---- Build Stage ----
-# Use a full Python image to build dependencies
 FROM python:3.12-slim AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.8.21 /uv /uvx /bin/
@@ -42,5 +38,3 @@ ENV GRADIO_SERVER_NAME="0.0.0.0"
 # Command to run the application
 # We use `gradio` CLI to run the app which is better for production
 CMD ["gradio", "run.py"]
-# CMD ["uv", "run", "run.py"]
-# CMD bash -c "uv run run.py"
