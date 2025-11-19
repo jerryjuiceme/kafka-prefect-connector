@@ -21,3 +21,9 @@ dependencies = [
     "pyyaml>=6.0.3",
     "uvicorn>=0.34.2",
 ]
+
+[dependency-groups]
+lint = []
+dev = [
+    "ruff>=0.14.5",
+]

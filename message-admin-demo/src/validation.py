@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class TopicToFlowConfig(BaseModel):
-    """Pydantic модель для одного объекта из JSON-конфигурации."""
+    """Pydantic model for a single object from the JSON configuration."""
 
     deployment_name: str = Field(validation_alias="deploymentName")
     flow_name: str = Field(validation_alias="flowName")
@@ -27,12 +27,12 @@ class TopicToFlowConfig(BaseModel):
 
 @dataclass
 class ValidationConfig:
-    """Класс для валидации и хранения конфигурации топиков."""
+    """Class for validating and storing topic configuration."""
 
     flow_config: list[TopicToFlowConfig] | None = None
 
     def validate(self):
-        """Загружает и валидирует JSON-файл конфигурации."""
+        """Loads and validates the JSON configuration file."""
         logger.info("Validating validation config JSON file")
         try:
             config_dict = self._load_json()
@@ -52,17 +52,17 @@ class ValidationConfig:
             logger.debug([i.model_dump() for i in self.flow_config])
 
     def _load_json(self) -> dict:
-        """Загружает JSON из файла."""
+        """Loads JSON from file."""
         with open(settings.base_dir / "prefect_data/event_config.json") as f:
             return json.load(f)
 
     @property
     def topics(self) -> list[str]:
-        """Возвращает список имен топиков."""
+        """Returns the list of topic names."""
         if self.flow_config:
             return [config.topic for config in self.flow_config]
         return []
 
 
-# Создаем единственный экземпляр валидатора
+# Create a single validator instance
 conf_validator = ValidationConfig()

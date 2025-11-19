@@ -31,6 +31,12 @@ services:
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
     depends_on:
       - zookeeper
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "19092"] 
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
     volumes:
       - kafka_data:/var/lib/kafka/data
     networks:
@@ -68,6 +74,8 @@ services:
       POSTGRES_PASSWORD: user
       POSTGRES_DB: prefect-db
     restart: unless-stopped
+    # TODO: remove ports:
+    # TODO: check this https://docs.prefect.io/v3/how-to-guides/self-hosted/docker-compose
     ports:
       - "5438:5432"
     volumes:
@@ -75,6 +83,43 @@ services:
     networks:
       - prefect-kafka-network
 
+  prefect-worker:
+    build:
+      context: ./prefect-worker-demo
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - prefect-server
+      - postgres
+      - kafka
+      
+    env_file:
+      - path: prefect-worker-demo/.env
+        required: true
+    environment:
+      PREFECT_API_URL: "http://prefect-server:4200/api"
+      PREFECT_API_AUTH_STRING: "admin:pass"
+    networks:
+      - prefect-kafka-network
+
+  gradio-panel:
+    build:
+      context: ./message-admin-demo
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    env_file:
+      - path: message-admin-demo/.env
+        required: true
+    environment:
+      APP_CONFIG__BROKER__KAFKA_BOOTSTRAP_SERVERS: "kafka:19092"
+    #   PREFECT_API_AUTH_STRING: "admin:pass"
+    networks:
+      - prefect-kafka-network
 
 volumes:
   postgres_data:

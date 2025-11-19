@@ -12,7 +12,7 @@ RUN pip install uv
 # Create isolated environment in .venv
 RUN uv sync --frozen --no-dev
 
-COPY deploy.py ./
+COPY ./deploy.py ./
 
 FROM python:3.12-slim
 
@@ -30,4 +30,4 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PREFECT_LOGGING_LEVEL=INFO
 
 # Entry point: seed credentials, deploy, and start worker
-CMD bash -c "prefect work-pool create 'basic-pipe' --type process  && python deploy.py && prefect worker start --pool 'basic-pipe'"
+CMD bash -c "prefect work-pool create 'basic-pipe' --type process --overwrite   && python deploy.py && prefect worker start --pool 'basic-pipe'"

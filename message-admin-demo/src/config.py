@@ -5,7 +5,6 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Определяем базовую директорию проекта
 BASE_DIR = Path(__file__).parent.parent
 
 
