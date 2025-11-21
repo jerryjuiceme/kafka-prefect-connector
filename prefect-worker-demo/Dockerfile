@@ -29,5 +29,6 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PREFECT_LOGGING_LEVEL=INFO
 # Entry point: seed credentials, deploy, and start worker
-# CMD bash -c "prefect work-pool create 'basic-pipe' --type process --overwrite && python deploy.py && prefect worker start --pool 'basic-pipe'"
-CMD ["prefect", "work-pool", "create", "basic-pipe", "--type", "process", "--overwrite", "&&", "python", "deploy.py", "&&", "prefect", "worker", "start", "--pool", "basic-pipe"]
+
+CMD bash -c "prefect work-pool create 'basic-pipe' --type process --overwrite && python deploy.py && prefect worker start --pool 'basic-pipe'"
+# CMD ["prefect", "work-pool", "create", "basic-pipe", "--type", "process", "--overwrite", "&&", "python", "deploy.py", "&&", "prefect", "worker", "start", "--pool", "basic-pipe"]

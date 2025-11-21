@@ -13,6 +13,7 @@ from src.config import settings
 logger = logging.getLogger(__name__)
 
 
+# TODO: add linters
 class MessageConsumer:
     def __init__(
         self,
@@ -29,8 +30,8 @@ class MessageConsumer:
             group_id=group_id,
             bootstrap_servers=bootstrap_servers,
             # loop=loop,  # use custom event loop instance if needed
-            max_poll_records=10,  # limit the number of records
-            max_poll_interval_ms=5000,  # increase polling interval
+            max_poll_records=10,  # number of records
+            max_poll_interval_ms=5000,  # polling interval
         )
         self.topic: str = topic
         self.deployment_id: uuid.UUID | str = deployment_id
@@ -47,8 +48,8 @@ class MessageConsumer:
         try:
             await self.consumer.start()
             self.broker_started = True
-
             logger.info("Consumer started, topic: %s", self.topic)
+
             async for message in self.consumer:
                 if message.value is not None:
                     decoded_message = message.value.decode("utf-8")
@@ -138,21 +139,3 @@ class MessageConsumer:
             return self.deployment_id
         except (httpx.RequestError, httpx.HTTPStatusError):
             raise
-
-    ################################################
-    ############ Prefect SDK Method ################
-    ################################################
-
-    # async def trigger_flow(
-    #     self,
-    #     message_value: dict,
-    #     deployment_id: uuid.UUID,
-    # ):
-    #   from prefect.client.orchestration import get_client
-    #
-    #     async with get_client() as client:
-    #         await client.create_flow_run_from_deployment(
-    #             name=name,
-    #             deployment_id=deployment_id,
-    #             parameters={"event_data": message_value},
-    #         )

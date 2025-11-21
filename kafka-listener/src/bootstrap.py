@@ -13,10 +13,10 @@ from src.broker import start_consumers, stop_consumers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    # startup
     set_logging()
     conf_validator.validate()
     await start_consumers()
-    # startup
     yield
     # shutdown
     await stop_consumers()

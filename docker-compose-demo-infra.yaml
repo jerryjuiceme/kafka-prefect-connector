@@ -5,11 +5,11 @@ services:
     image: confluentinc/cp-zookeeper:7.3.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    restart: unless-stopped
     ports:
       - "2181:2181"
     networks:
       - prefect-kafka-network
-
     
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -55,44 +55,30 @@ services:
     networks:
       - prefect-kafka-network
       
+
+      
   prefect-server:
     image: prefecthq/prefect:3-latest
-    command: prefect server start --host 0.0.0.0
     ports:
       - "4200:4200"
+    restart: unless-stopped
     environment:
       PREFECT_LOGGING_LEVEL: INFO
       PREFECT_SERVER_API_AUTH_STRING: "admin:pass"
-    volumes:
+    command: prefect server start --host 0.0.0.0
+    volumes: 
       - prefect_data:/root/.prefect
     networks:
       - prefect-kafka-network
 
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
-      POSTGRES_DB: prefect-db
-    restart: unless-stopped
-    # TODO: remove ports:
-    # TODO: check this https://docs.prefect.io/v3/how-to-guides/self-hosted/docker-compose
-    ports:
-      - "5438:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - prefect-kafka-network
+
 
   prefect-worker:
     build:
       context: ./prefect-worker-demo
       dockerfile: Dockerfile
-    restart: unless-stopped
     depends_on:
       - prefect-server
-      - postgres
-      - kafka
     env_file:
       - path: prefect-worker-demo/.env
         required: true
@@ -101,22 +87,13 @@ services:
       PREFECT_API_AUTH_STRING: "admin:pass"
     networks:
       - prefect-kafka-network
-    # command: 
-    #   - prefect work-pool create 'basic-pipe' --type process --overwrite
-    #   - python prefect-worker-demo/deploy.py
-    #   - prefect worker start --pool 'basic-pipe'
-
-
-# CMD bash -c "prefect work-pool create 'basic-pipe' --type process --overwrite && python deploy.py && prefect worker start --pool 'basic-pipe'"
-
-
+      
   gradio-panel:
     build:
       context: ./message-admin-demo
       dockerfile: Dockerfile
     ports:
       - "7860:7860"
-    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
@@ -130,9 +107,8 @@ services:
       - prefect-kafka-network
 
 volumes:
-  postgres_data:
-  prefect_data:
   kafka_data:
+  prefect_data: 
 
 networks:
   prefect-kafka-network:
