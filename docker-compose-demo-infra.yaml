@@ -101,13 +101,7 @@ services:
       PREFECT_API_AUTH_STRING: "admin:pass"
     networks:
       - prefect-kafka-network
-    # command: 
-    #   - prefect work-pool create 'basic-pipe' --type process --overwrite
-    #   - python prefect-worker-demo/deploy.py
-    #   - prefect worker start --pool 'basic-pipe'
 
-
-# CMD bash -c "prefect work-pool create 'basic-pipe' --type process --overwrite && python deploy.py && prefect worker start --pool 'basic-pipe'"
 
 
   gradio-panel:
