@@ -55,8 +55,6 @@ services:
     networks:
       - prefect-kafka-network
       
-
-      
   prefect-server:
     image: prefecthq/prefect:3-latest
     ports:
@@ -70,8 +68,6 @@ services:
       - prefect_data:/root/.prefect
     networks:
       - prefect-kafka-network
-
-
 
   prefect-worker:
     build:
