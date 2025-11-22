@@ -145,7 +145,10 @@ _URL:_ http://localhost:4200/deployments
 ![Prefect Deployments](static/deployments_screenshot.png)
 
 **2\. Send a Kafka Message**  
-Use the Gradio Admin Panel to simulate an event. Select a topic (e.g., `event-topic-1`) and send a JSON payload.  
+Use the Gradio Admin Panel to simulate an event. Select a topic (e.g., `event-topic-1`) and send a JSON payload.
+
+> _Note: In our demo, we're using string as a payload. In a real-world scenario, you would likely use a more complex data structure._
+
 _URL:_ http://127.0.0.1:7860/
 
 ![Message Panel](static/gradio_panel_screenshot.png)
