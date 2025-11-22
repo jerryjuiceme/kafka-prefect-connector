@@ -1,36 +1,24 @@
 import asyncio
-from typing import List
 import logging
-from dataclasses import dataclass
-import uuid
-from .base_consumer import MessageConsumer
-
-logger = logging.getLogger(__name__)
 
 from src.config import settings
 from src.validator import conf_validator
 
+from .base_consumer import MessageConsumer, PrefectConsumerConfig
+
+
+logger = logging.getLogger(__name__)
+
 event_loop = asyncio.get_event_loop()
 
 
-@dataclass
-class BrokerConfig:
-    topic: str
-    deployment_id: uuid.UUID | str
-    flow_name: str
-    group_id: str
-    bootstrap_servers: str
-
-
-async def start_consumer(br_conf: BrokerConfig) -> None:
+async def start_consumer(br_conf: PrefectConsumerConfig) -> None:
     consumer = MessageConsumer(
-        topic=br_conf.topic,
-        deployment_id=br_conf.deployment_id,
-        group_id=br_conf.group_id,
-        bootstrap_servers=br_conf.bootstrap_servers,
-        prefect_api_url=settings.prefect.api_url,
-        flow_name=br_conf.flow_name,
+        broker_config=br_conf,
         loop=event_loop,
+        group_id=settings.broker.group_id,
+        bootstrap_servers=settings.broker.kafka_bootstrap_servers,
+        prefect_api_url=settings.prefect.api_url,
     )
     attempts = 0
     for i in range(settings.run_retry_limit):
@@ -51,12 +39,12 @@ async def start_consumer(br_conf: BrokerConfig) -> None:
             await consumer.consumer.stop()
             attempts += 1
             await asyncio.sleep(2 + attempts)
-        if attempts >= 5:
+        if attempts >= settings.run_retry_limit:
             logger.error("Consumer not started. Exiting")
             raise SystemExit(1)
 
 
-background_tasks: List[asyncio.Task] = []
+background_tasks: list[asyncio.Task] = []
 
 
 async def start_consumers() -> None:
@@ -69,12 +57,10 @@ async def start_consumers() -> None:
             if settings.prefect.use_deployment_id
             else conf.deployment_name
         )
-        broker_config = BrokerConfig(
+        broker_config = PrefectConsumerConfig(
             topic=conf.topic,
             deployment_id=deployment_id,
             flow_name=conf.flow_name,
-            group_id=settings.broker.group_id,
-            bootstrap_servers=settings.broker.kafka_bootstrap_servers,
         )
         logger.info("Starting consumer for topic: %s", conf.topic)
         task = asyncio.create_task(start_consumer(broker_config))

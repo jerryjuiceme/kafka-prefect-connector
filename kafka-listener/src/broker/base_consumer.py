@@ -1,41 +1,39 @@
 import asyncio
 from asyncio import AbstractEventLoop
-from functools import cache
 import logging
 from typing import Self
 import uuid
+
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 import httpx
 
-from src.config import settings
+from .models import PrefectConsumerConfig
+
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: add linters
 class MessageConsumer:
     def __init__(
         self,
-        topic: str,
-        deployment_id: uuid.UUID | str,
-        flow_name: str,
+        broker_config: PrefectConsumerConfig,
         group_id: str,
         bootstrap_servers: str,
         prefect_api_url: str,
-        loop: AbstractEventLoop,  # NOQA
+        loop: AbstractEventLoop,
     ):
         self.consumer = AIOKafkaConsumer(
-            topic,
+            broker_config.topic,
             group_id=group_id,
             bootstrap_servers=bootstrap_servers,
             # loop=loop,  # use custom event loop instance if needed
             max_poll_records=10,  # number of records
             max_poll_interval_ms=5000,  # polling interval
         )
-        self.topic: str = topic
-        self.deployment_id: uuid.UUID | str = deployment_id
-        self.flow_name: str = flow_name
+        self.topic: str = broker_config.topic
+        self.deployment_id: uuid.UUID | str = broker_config.deployment_id
+        self.flow_name: str = broker_config.flow_name
         self.prefect_api_url: str = prefect_api_url
         self.broker_started = False
 

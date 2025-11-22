@@ -3,12 +3,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from src.broker import start_consumers, stop_consumers
+from src.config import settings
+from src.healthcheck import router as healthcheck_router
 from src.loggers import set_logging
 from src.utils import name_to_snake
-from src.healthcheck import router as healthcheck_router
-from src.config import settings
 from src.validator import conf_validator
-from src.broker import start_consumers, stop_consumers
 
 
 @asynccontextmanager

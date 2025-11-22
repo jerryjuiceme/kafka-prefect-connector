@@ -1,14 +1,15 @@
 from functools import lru_cache
-from typing import Literal
-from pydantic import BaseModel, Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 BASE_DIR = Path(__file__).parent.parent
 
 
-class BrokerConfig(BaseModel):
+class PrefectConsumerConfig(BaseModel):
     kafka_bootstrap_servers: str
     group_id: str
 
@@ -33,7 +34,7 @@ class Settings(BaseSettings):
     project_name: str
     version: str
     mode: Literal["DEV", "PROD", "TEST"] = "DEV"
-    broker: BrokerConfig
+    broker: PrefectConsumerConfig
     prefect: PrefectConfig
     run_retry_limit: int
 
