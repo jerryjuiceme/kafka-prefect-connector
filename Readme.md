@@ -90,8 +90,8 @@ The demo infrastructure includes:
 Clone the repository:
 
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+git clone https://github.com/jerryjuiceme/kafka-prefect-connector.git
+cd kafka-prefect-connector
 ```
 
 ### Running with Docker
