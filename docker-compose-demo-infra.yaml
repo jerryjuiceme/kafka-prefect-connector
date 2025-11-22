@@ -102,10 +102,12 @@ services:
     networks:
       - prefect-kafka-network
 
-  kafka_listner:
+  kafka-listner:
     depends_on:
       kafka:
         condition: service_healthy
+      prefect-server:
+        condition: service_started
     environment:
       APP_CONFIG__BROKER__KAFKA_BOOTSTRAP_SERVERS: "kafka:19092"
       APP_CONFIG__BROKER__GROUP_ID: "prefect-listener"
