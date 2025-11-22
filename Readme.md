@@ -142,13 +142,13 @@ Once the full infrastructure is running via `make up-demo`, follow this workflow
 The Prefect Worker automatically creates deployments matching the example config.  
 _URL:_ http://localhost:4200/deployments
 
-![Prefect Deployments](/Applications/Joplin.app/Contents/Resources/app.asar/static/deployments_screenshot.png)
+![Prefect Deployments](static/deployments_screenshot.png)
 
 **2\. Send a Kafka Message**  
 Use the Gradio Admin Panel to simulate an event. Select a topic (e.g., `event-topic-1`) and send a JSON payload.  
 _URL:_ http://127.0.0.1:7860/
 
-![Gradio Panel](/Applications/Joplin.app/Contents/Resources/app.asar/static/gradio_panel_screenshot.png)
+![Message Panel](static/gradio_panel_screenshot.png)
 
 **3\. Connector Processing**  
 The `kafka-listener` service consumes the message, validates the config mapping, and calls the Prefect API to trigger the specific deployment associated with that topic.
@@ -157,12 +157,12 @@ The `kafka-listener` service consumes the message, validates the config mapping,
 Check the Prefect dashboard to see the triggered Flow Run.  
 _URL:_ http://localhost:4200/runs
 
-![Prefect Runs](/Applications/Joplin.app/Contents/Resources/app.asar/static/runs_screenshot.png)
+![Prefect Runs](static/runs_screenshot.png)
 
 **5\. Check Logs**  
 Open the specific run logs. The demo flow prints the content of the Kafka message, verifying the data pipeline was triggered successfully with the correct context.
 
-![Run Logs](/Applications/Joplin.app/Contents/Resources/app.asar/static/logs_screenshot.png)
+![Run Logs](static/logs_screenshot.png)
 
 ## Make Commands Reference
 
