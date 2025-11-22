@@ -75,6 +75,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - prefect-server
+    restart: unless-stopped
     env_file:
       - path: prefect-worker-demo/.env
         required: true
@@ -98,7 +99,6 @@ services:
         required: true
     environment:
       APP_CONFIG__BROKER__KAFKA_BOOTSTRAP_SERVERS: "kafka:19092"
-    #   PREFECT_API_AUTH_STRING: "admin:pass"
     networks:
       - prefect-kafka-network
 
