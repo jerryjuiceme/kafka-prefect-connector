@@ -169,13 +169,14 @@ Open the specific run logs. The demo flow prints the content of the Kafka messag
 
 ## Make Commands Reference
 
-| Command              | Description                             |
-| :------------------- | :-------------------------------------- |
-| `make up-demo`       | Starts the full stack (App + Infra)     |
-| `make up`            | Starts only the Kafka-Listener service  |
-| `make down`          | Stops and removes all containers        |
-| `make install-local` | Installs Python dependencies using `uv` |
-| `make run-local`     | Runs the app locally on port 8000       |
+| Command              | Description                                  |
+| :------------------- | :------------------------------------------- |
+| `make up-demo`       | Starts the full stack (App + Infra)          |
+| `make up`            | Starts only the Kafka-Listener service       |
+| `make down`          | Stops and removes all containers             |
+| `make down-full`     | Stops and removes all containers and volumes |
+| `make install-local` | Installs Python dependencies using `uv`      |
+| `make run-local`     | Runs the app locally on port 8000            |
 
 ## Service URLs
 

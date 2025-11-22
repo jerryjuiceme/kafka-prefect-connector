@@ -5,6 +5,7 @@ help:
 	@echo "  make up            - Start only the Kafka-Listener service (requires external infra)"
 	@echo "  make up-demo       - Start the full demo infrastructure (Kafka, Prefect, GUI, Worker, Listener)"
 	@echo "  make down          - Stop and remove all containers"
+	@echo "  make down-full     - Stop and remove all containers and volumes"
 	@echo "  make restart-demo  - Restart the full demo infrastructure"
 	@echo "  make install-local - Install dependencies for local development (using uv)"
 	@echo "  make run-local     - Run the Kafka-Listener service locally"
@@ -20,6 +21,11 @@ up-demo:
 # Stops all containers defined in both compose files
 down:
 	docker-compose -f docker-compose.yaml -f docker-compose-demo-infrastructure.yaml down
+
+# Stops all containers defined in both compose files and removes all volumes
+down-full:
+	docker-compose -f docker-compose.yaml -f docker-compose-demo-infrastructure.yaml down -v
+
 
 # Restarts the full demo stack
 restart-demo: down up-demo
