@@ -1,5 +1,12 @@
 # Kafka-Prefect Connector
 
+[![Python 3.12–3.13](https://img.shields.io/badge/Python-3.12--3.13-000000?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Last Commit](https://img.shields.io/github/last-commit/jerryjuiceme/kafka-prefect-connector?style=for-the-badge&color=000000)](https://github.com/jerryjuiceme/kafka-prefect-connector/commits)
+
+![FastAPI](https://img.shields.io/badge/FastAPI-000000?style=for-the-badge&logo=fastapi&logoColor=white)
+![Prefect](https://img.shields.io/badge/Prefect-000000?style=for-the-badge&logo=prefect&logoColor=white)
+![AIOKafka](https://img.shields.io/badge/AIOKafka-000000?style=for-the-badge&logo=apachekafka&logoColor=white)
+
 This project is a Python-based stateless application designed to act as an event trigger (similar to an Airflow Sensor) for Prefect workflows. It bridges the gap between Apache Kafka and Prefect by consuming messages from specific Kafka topics and triggering corresponding Prefect deployments via the Prefect API.
 
 The application creates asynchronous Kafka consumers based on a provided configuration. It is built using **FastAPI** for lifecycle management and health checks, **Pydantic** for robust validation, **AIOKafka** for asynchronous message consumption, and **HTTPX** for non-blocking API requests to the Prefect Server.
