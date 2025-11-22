@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 import json
 import logging
-from pathlib import Path
-import sys
 
-from src.validator.config_schema import TopicToFlowConfig
 from src.config import settings
-from os.path import exists
+from src.validator.config_schema import TopicToFlowConfig
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +13,7 @@ logger = logging.getLogger(__name__)
 class ValidationConfig:
     flow_config: list[TopicToFlowConfig] | None = None
 
-    def validate(self):
+    def validate(self) -> None:
         logger.info("Validating validation config JSON file")
         try:
             config_dict = self._load_json()
@@ -34,7 +32,7 @@ class ValidationConfig:
             logger.info("Validation config JSON completed successfully")
             logger.debug([i.model_dump() for i in self.flow_config])
 
-    def stop(self):
+    def stop(self) -> None:
         self.flow_config = None
         logger.info("Validation config JSON stopped successfully")
 
@@ -47,8 +45,8 @@ class ValidationConfig:
 
     def _load_json(self) -> dict:
         files = [
-            settings.base_dir.parent / "prefect_data/event_config.json",
-            settings.base_dir / "prefect_data/event_config.json",
+            settings.base_dir.parent / "kafka-prefect-config.json",
+            settings.base_dir / "prefect_topics_config/kafka-prefect-config.json",
         ]
         for file in files:
             if file.exists():

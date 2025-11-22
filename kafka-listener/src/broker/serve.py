@@ -1,36 +1,24 @@
 import asyncio
-from typing import List
 import logging
-from dataclasses import dataclass
-import uuid
-from .base_consumer import MessageConsumer
-
-logger = logging.getLogger(__name__)
 
 from src.config import settings
 from src.validator import conf_validator
 
+from .base_consumer import MessageConsumer, PrefectConsumerConfig
+
+
+logger = logging.getLogger(__name__)
+
 event_loop = asyncio.get_event_loop()
 
 
-@dataclass
-class BrokerConfig:
-    topic: str
-    deployment_id: uuid.UUID | str
-    flow_name: str
-    group_id: str
-    bootstrap_servers: str
-
-
-async def start_consumer(br_conf: BrokerConfig) -> None:
+async def start_consumer(br_conf: PrefectConsumerConfig) -> None:
     consumer = MessageConsumer(
-        topic=br_conf.topic,
-        deployment_id=br_conf.deployment_id,
-        group_id=br_conf.group_id,
-        bootstrap_servers=br_conf.bootstrap_servers,
-        prefect_api_url=settings.prefect.api_url,
-        flow_name=br_conf.flow_name,
+        broker_config=br_conf,
         loop=event_loop,
+        group_id=settings.broker.group_id,
+        bootstrap_servers=settings.broker.kafka_bootstrap_servers,
+        prefect_api_url=settings.prefect.api_url,
     )
     attempts = 0
     for i in range(settings.run_retry_limit):
@@ -50,13 +38,15 @@ async def start_consumer(br_conf: BrokerConfig) -> None:
             )
             await consumer.consumer.stop()
             attempts += 1
-            await asyncio.sleep(2 + attempts)
-        if attempts >= 5:
-            logger.error("Consumer not started. Exiting")
+            await asyncio.sleep(3 + attempts)
+        if attempts >= settings.run_retry_limit:
+            logger.error(
+                "Consumer not started, retry limit exceeded. Check Kafka Connection. Exiting"
+            )
             raise SystemExit(1)
 
 
-background_tasks: List[asyncio.Task] = []
+background_tasks: list[asyncio.Task] = []
 
 
 async def start_consumers() -> None:
@@ -64,17 +54,29 @@ async def start_consumers() -> None:
         raise RuntimeError("No configs found")
 
     for conf in conf_validator.configs:
-        deployment_id = (
-            conf.deployment_id
-            if settings.prefect.use_deployment_id
-            else conf.deployment_name
-        )
-        broker_config = BrokerConfig(
+
+        ### if deployment id is not provided, use deployment name
+        ### or if USE_DEPLOYMENT_ID=False in settings, use deployment name
+        if not settings.prefect.use_deployment_id:
+            deployment_id = conf.deployment_name
+            logger.info(
+                "USE_DEPLOYMENT_ID=False in settings. Using deployment name: %s",
+                deployment_id,
+            )
+        elif conf.deployment_id is None:
+            deployment_id = conf.deployment_name
+            logger.info(
+                "Deployment id not provided for topic: %s. Using deployment name: %s",
+                conf.topic,
+                deployment_id,
+            )
+        else:
+            deployment_id = conf.deployment_id
+
+        broker_config = PrefectConsumerConfig(
             topic=conf.topic,
             deployment_id=deployment_id,
             flow_name=conf.flow_name,
-            group_id=settings.broker.group_id,
-            bootstrap_servers=settings.broker.kafka_bootstrap_servers,
         )
         logger.info("Starting consumer for topic: %s", conf.topic)
         task = asyncio.create_task(start_consumer(broker_config))

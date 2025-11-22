@@ -1,14 +1,15 @@
 import asyncio
 from asyncio import AbstractEventLoop
-from functools import cache
 import logging
 from typing import Self
 import uuid
+
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 import httpx
 
-from src.config import settings
+from .models import PrefectConsumerConfig
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,25 +17,23 @@ logger = logging.getLogger(__name__)
 class MessageConsumer:
     def __init__(
         self,
-        topic: str,
-        deployment_id: uuid.UUID | str,
-        flow_name: str,
+        broker_config: PrefectConsumerConfig,
         group_id: str,
         bootstrap_servers: str,
         prefect_api_url: str,
-        loop: AbstractEventLoop,  # NOQA
+        loop: AbstractEventLoop,
     ):
         self.consumer = AIOKafkaConsumer(
-            topic,
+            broker_config.topic,
             group_id=group_id,
             bootstrap_servers=bootstrap_servers,
             # loop=loop,  # use custom event loop instance if needed
-            max_poll_records=10,  # limit the number of records
-            max_poll_interval_ms=5000,  # increase polling interval
+            max_poll_records=10,  # number of records
+            max_poll_interval_ms=5000,  # polling interval
         )
-        self.topic: str = topic
-        self.deployment_id: uuid.UUID | str = deployment_id
-        self.flow_name: str = flow_name
+        self.topic: str = broker_config.topic
+        self.deployment_id: uuid.UUID | str = broker_config.deployment_id
+        self.flow_name: str = broker_config.flow_name
         self.prefect_api_url: str = prefect_api_url
         self.broker_started = False
 
@@ -47,8 +46,8 @@ class MessageConsumer:
         try:
             await self.consumer.start()
             self.broker_started = True
-
             logger.info("Consumer started, topic: %s", self.topic)
+
             async for message in self.consumer:
                 if message.value is not None:
                     decoded_message = message.value.decode("utf-8")
@@ -138,21 +137,3 @@ class MessageConsumer:
             return self.deployment_id
         except (httpx.RequestError, httpx.HTTPStatusError):
             raise
-
-    ################################################
-    ############ Prefect SDK Method ################
-    ################################################
-
-    # async def trigger_flow(
-    #     self,
-    #     message_value: dict,
-    #     deployment_id: uuid.UUID,
-    # ):
-    #   from prefect.client.orchestration import get_client
-    #
-    #     async with get_client() as client:
-    #         await client.create_flow_run_from_deployment(
-    #             name=name,
-    #             deployment_id=deployment_id,
-    #             parameters={"event_data": message_value},
-    #         )

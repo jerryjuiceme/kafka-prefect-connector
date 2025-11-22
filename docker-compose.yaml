@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  kafka-listner:
+    build:
+      context: ./kafka-listener
+      dockerfile: Dockerfile
+    env_file:
+      - path: kafka-listener/.env
+        required: true

@@ -11,6 +11,7 @@ dependencies = [
     "cloudpickle>=3.1.1",
     "fastapi>=0.120.1",
     "griffe>=1.14.0",
+    "gunicorn>=23.0.0",
     "httpx>=0.28.1",
     "humanize>=4.14.0",
     "orjson>=3.11.4",
@@ -19,11 +20,64 @@ dependencies = [
     "pydantic-extra-types>=2.10.6",
     "pydantic-settings>=2.9.1",
     "pyyaml>=6.0.3",
-    "uvicorn>=0.34.2",
+    "uvicorn>=0.38.0",
 ]
 
 [dependency-groups]
 lint = []
-dev = [
-    "ruff>=0.14.5",
+dev = ["ruff>=0.14.5"]
+production = ["uvicorn>=0.38.0"]
+
+[tool.ruff]
+# Run in check-only mode (no auto-fixing)
+fix = true
+# Set line length to match Black
+line-length = 100
+
+# Include .py and .pyi files, as in Black
+include = ["*.py", "*.pyi"]
+
+# Exclude the same directories and files as in Black
+exclude = [
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "foo.py",
+    "**/*example.py",
 ]
+
+# Select rules for linting
+lint.select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "ANN", # flake8-annotations for type annotation checks
+    "UP",  # pyupgrade (модернизация кода)
+    "PL",
+    "RUF",
+]
+
+lint.ignore = [
+    "ANN001", # Ignore missing type annotation for 'self'
+    "ANN002", # Ignore missing type annotation for 'cls'
+    "ANN204", # Ignore missing type annotation for '__init__'
+    "UP031",  # Ignore use of deprecated module
+    "UP046",  # Ignore TypeVar usage
+]
+
+
+[tool.ruff.lint.isort]
+known-first-party = []
+force-sort-within-sections = true
+lines-after-imports = 2
+combine-as-imports = true
+split-on-trailing-comma = true    # include_trailing_comma
+force-wrap-aliases = false
