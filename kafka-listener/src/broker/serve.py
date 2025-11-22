@@ -54,11 +54,25 @@ async def start_consumers() -> None:
         raise RuntimeError("No configs found")
 
     for conf in conf_validator.configs:
-        deployment_id = (
-            conf.deployment_id
-            if settings.prefect.use_deployment_id
-            else conf.deployment_name
-        )
+
+        ### if deployment id is not provided, use deployment name
+        ### or if USE_DEPLOYMENT_ID=False in settings, use deployment name
+        if not settings.prefect.use_deployment_id:
+            deployment_id = conf.deployment_name
+            logger.info(
+                "USE_DEPLOYMENT_ID=False in settings. Using deployment name: %s",
+                deployment_id,
+            )
+        elif conf.deployment_id is None:
+            deployment_id = conf.deployment_name
+            logger.info(
+                "Deployment id not provided for topic: %s. Using deployment name: %s",
+                conf.topic,
+                deployment_id,
+            )
+        else:
+            deployment_id = conf.deployment_id
+
         broker_config = PrefectConsumerConfig(
             topic=conf.topic,
             deployment_id=deployment_id,
