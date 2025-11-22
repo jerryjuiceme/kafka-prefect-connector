@@ -40,7 +40,9 @@ async def start_consumer(br_conf: PrefectConsumerConfig) -> None:
             attempts += 1
             await asyncio.sleep(2 + attempts)
         if attempts >= settings.run_retry_limit:
-            logger.error("Consumer not started. Exiting")
+            logger.error(
+                "Consumer not started, retry limit exceeded. Check Kafka Connection. Exiting"
+            )
             raise SystemExit(1)
 
 

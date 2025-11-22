@@ -17,7 +17,7 @@ class TopicToFlowConfig(BaseModel):
     deployment_name: str = Field(validation_alias="deploymentName")
     flow_name: str = Field(validation_alias="flowName")
     topic: str
-    deployment_id: UUID = Field(validation_alias="deploymentId")
+    deployment_id: UUID | None = Field(validation_alias="deploymentId", default=None)
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -52,9 +52,17 @@ class ValidationConfig:
             logger.debug([i.model_dump() for i in self.flow_config])
 
     def _load_json(self) -> dict:
-        """Loads JSON from file."""
-        with open(settings.base_dir / "prefect_data/event_config.json") as f:
-            return json.load(f)
+        files = [
+            settings.base_dir.parent / "kafka-prefect-config.json",
+            settings.base_dir / "prefect_topics_config/kafka-prefect-config.json",
+        ]
+        for file in files:
+            if file.exists():
+                with open(file) as f:
+                    return json.load(f)
+
+        logger.error("Failed to load validation config JSON file")
+        raise FileNotFoundError("Failed to load validation config JSON file")
 
     @property
     def topics(self) -> list[str]:

@@ -102,6 +102,18 @@ services:
     networks:
       - prefect-kafka-network
 
+  kafka_listner:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      APP_CONFIG__BROKER__KAFKA_BOOTSTRAP_SERVERS: "kafka:19092"
+      APP_CONFIG__BROKER__GROUP_ID: "prefect-listener"
+      APP_CONFIG__PREFECT__API_URL: "http://prefect-server:4200/api"
+    networks:
+      - prefect-kafka-network
+
+
 volumes:
   kafka_data:
   prefect_data: 

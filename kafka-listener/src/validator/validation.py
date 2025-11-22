@@ -45,8 +45,8 @@ class ValidationConfig:
 
     def _load_json(self) -> dict:
         files = [
-            settings.base_dir.parent / "prefect_data/event_config.json",
-            settings.base_dir / "prefect_data/event_config.json",
+            settings.base_dir.parent / "kafka-prefect-config.json",
+            settings.base_dir / "prefect_topics_config/kafka-prefect-config.json",
         ]
         for file in files:
             if file.exists():
