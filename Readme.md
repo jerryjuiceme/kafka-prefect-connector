@@ -24,7 +24,7 @@ The application creates asynchronous Kafka consumers based on a provided configu
 
 The core logic relies on a configuration file mapping Kafka topics to Prefect deployments. The application enforces a **1 Topic -> 1 Deployment** logic.
 
-The file must be named `kafka-prefect-config.json` and placed either in the **parent directory** or in `./prefect_topics_config/kafka-prefect-config.json`.
+The file must be named `kafka-prefect-config.json` and placed either in the **parent directory** or in **project directory** `kafka-listener/prefect_topics_config/kafka-prefect-config.json`.
 
 ### Configuration Structure
 
