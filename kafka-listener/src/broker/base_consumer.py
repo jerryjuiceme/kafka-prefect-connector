@@ -8,6 +8,7 @@ from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 import httpx
 
+from src.http_client import http_client
 from .models import PrefectConsumerConfig
 
 
@@ -37,11 +38,7 @@ class MessageConsumer:
         self.prefect_api_url: str = prefect_api_url
         self.broker_started = False
 
-    async def consume_message(
-        self: Self,
-        auth_username: str,
-        auth_password: str,
-    ) -> None:
+    async def consume_message(self: Self) -> None:
 
         try:
             await self.consumer.start()
@@ -54,8 +51,6 @@ class MessageConsumer:
                 await self.trigger_flow(
                     message_value=decoded_message,
                     deployment_id=self.deployment_id,
-                    username=auth_username,
-                    password=auth_password,
                 )
                 await asyncio.sleep(0)
 
@@ -78,42 +73,38 @@ class MessageConsumer:
         self,
         message_value: dict,
         deployment_id: uuid.UUID | str,
-        username: str,
-        password: str,
     ) -> None:
 
-        auth = httpx.BasicAuth(username=username, password=password)
+        client = http_client.get_client()
+        try:
+            deployment_id = await self._get_deployment_id(
+                dp_name=deployment_id,
+                client=client,
+            )
+            url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
+            payload = {"parameters": {"event_data": message_value}}
+            logger.info(
+                "Message received %s. Triggering api for deployment '%s'",
+                message_value,
+                deployment_id,
+            )
 
-        async with httpx.AsyncClient(timeout=10, auth=auth) as client:
-            try:
-                deployment_id = await self._get_deployment_id(
-                    dp_name=deployment_id,
-                    client=client,
-                )
-                url = f"{self.prefect_api_url}/deployments/{deployment_id}/create_flow_run"
-                payload = {"parameters": {"event_data": message_value}}
-                logger.info(
-                    "Message received %s. Triggering api for deployment '%s'",
-                    message_value,
-                    deployment_id,
-                )
-
-                response = await client.post(url, json=payload)
-                response.raise_for_status()
-                result = response.json()
-                logger.info(
-                    "Flow run triggered for deployment '%s': %s",
-                    deployment_id,
-                    result.get("id"),
-                )
-            except httpx.RequestError as e:
-                logger.error(" Prefect API request failed: %s", e)
-            except httpx.HTTPStatusError as e:
-                logger.error(
-                    "Prefect API returned error %s: %s",
-                    e.response.status_code,
-                    e.response.text,
-                )
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            logger.info(
+                "Flow run triggered for deployment '%s': %s",
+                deployment_id,
+                result.get("id"),
+            )
+        except httpx.RequestError as e:
+            logger.error(" Prefect API request failed: %s", e)
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                "Prefect API returned error %s: %s",
+                e.response.status_code,
+                e.response.text,
+            )
 
     async def _get_deployment_id(
         self,

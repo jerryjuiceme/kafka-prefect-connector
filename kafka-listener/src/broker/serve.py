@@ -22,10 +22,7 @@ async def start_consumer(br_conf: PrefectConsumerConfig) -> None:
     )
     attempts = 0
     for i in range(settings.run_retry_limit):
-        await consumer.consume_message(
-            settings.prefect.basic_auth_username,
-            settings.prefect.basic_auth_password,
-        )
+        await consumer.consume_message()
 
         if consumer.broker_started:
             logger.info("Starting consumer for topic: %s", br_conf.topic)
